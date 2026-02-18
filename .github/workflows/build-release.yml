@@ -19,17 +19,39 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y zip
+        sudo apt-get install -y clang-18 lld-18 make zip curl
+        sudo ln -sf /usr/bin/clang-18 /usr/bin/clang
+        sudo ln -sf /usr/bin/ld.lld-18 /usr/bin/ld.lld
     
-    - name: Create source package
+    - name: Check mm-decomp submodule
       run: |
-        # Create source zip excluding git and other unnecessary files
-        zip -r mm-achievement-mod-v1.0.0-source.zip . \
-          -x ".git/*" \
-          -x ".github/*" \
-          -x "*.zip" \
-          -x "*.yml" \
-          -x "*.txt" || true
+        ls -la mm-decomp/
+        ls -la mm-decomp/include/ 2>/dev/null || echo "No include dir"
+    
+    - name: Download RecompModTool
+      run: |
+        curl -L -o RecompModTool \
+          "https://github.com/N64Recomp/N64Recomp/releases/download/mod-tool-release/RecompModTool"
+        chmod +x RecompModTool
+        sudo mv RecompModTool /usr/local/bin/
+        RecompModTool --help 2>&1 | head -5 || echo "RecompModTool installed"
+    
+    - name: Build mod
+      run: |
+        export CC=clang
+        export LD=ld.lld
+        make clean 2>/dev/null || true
+        make -j$(nproc) 2>&1
+    
+    - name: Build .nrm file
+      run: |
+        if [ -f "build/mod.elf" ]; then
+          RecompModTool mod.toml build
+          ls -la build/
+        else
+          echo "mod.elf not found - build may have failed"
+          exit 1
+        fi
     
     - name: Create Thunderstore package
       run: |
@@ -37,21 +59,16 @@ jobs:
         cp thunderstore/manifest.json thunderstore_package/
         cp thunderstore/README.md thunderstore_package/
         
-        # Copy icon if it exists
         if [ -f "thunderstore/icon.png" ]; then
           cp thunderstore/icon.png thunderstore_package/
         fi
         
-        # Copy source code for users to build
-        cp -r src thunderstore_package/
-        cp -r include thunderstore_package/
-        cp mod.toml thunderstore_package/
-        cp Makefile thunderstore_package/
-        cp README.md thunderstore_package/BUILD_README.md
+        if [ -f "build/mm_achievement_mod.nrm" ]; then
+          cp build/mm_achievement_mod.nrm thunderstore_package/
+        fi
         
-        # Create zip
         cd thunderstore_package
-        zip -r ../mm-achievement-mod-v1.0.0-thunderstore.zip .
+        zip -r ../mm_achievement_mod-thunderstore.zip .
         cd ..
     
     - name: Upload artifacts
@@ -59,15 +76,16 @@ jobs:
       with:
         name: mod-packages
         path: |
-          *.zip
+          build/mm_achievement_mod.nrm
+          mm_achievement_mod-thunderstore.zip
     
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          mm-achievement-mod-v1.0.0-source.zip
-          mm-achievement-mod-v1.0.0-thunderstore.zip
+          build/mm_achievement_mod.nrm
+          mm_achievement_mod-thunderstore.zip
         draft: false
         prerelease: false
         generate_release_notes: true
