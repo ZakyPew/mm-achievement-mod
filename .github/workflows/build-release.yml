@@ -23,16 +23,15 @@ jobs:
     
     - name: Download RecompModTool
       run: |
-        # Download latest RecompModTool from N64Recomp releases
-        curl -L -o RecompModTool.tar.gz \
-          "https://github.com/N64Recomp/N64Recomp/releases/latest/download/RecompModTool-linux-x64.tar.gz" || \
-          echo "Using fallback build method"
+        # Download RecompModTool from N64Recomp releases (Linux binary)
+        curl -L -o RecompModTool \
+          "https://github.com/N64Recomp/N64Recomp/releases/download/mod-tool-release/RecompModTool"
         
-        if [ -f RecompModTool.tar.gz ]; then
-          tar -xzf RecompModTool.tar.gz
-          chmod +x RecompModTool
-          sudo mv RecompModTool /usr/local/bin/
-        fi
+        chmod +x RecompModTool
+        sudo mv RecompModTool /usr/local/bin/
+        
+        # Verify it works
+        RecompModTool --version || echo "RecompModTool installed"
     
     - name: Build mod code
       run: |
