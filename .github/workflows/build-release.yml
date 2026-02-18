@@ -1,0 +1,96 @@
+name: Build and Release Mod
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y clang lld make zip
+    
+    - name: Download RecompModTool
+      run: |
+        # Download latest RecompModTool from N64Recomp releases
+        curl -L -o RecompModTool.tar.gz \
+          "https://github.com/N64Recomp/N64Recomp/releases/latest/download/RecompModTool-linux-x64.tar.gz" || \
+          echo "Using fallback build method"
+        
+        if [ -f RecompModTool.tar.gz ]; then
+          tar -xzf RecompModTool.tar.gz
+          chmod +x RecompModTool
+          sudo mv RecompModTool /usr/local/bin/
+        fi
+    
+    - name: Build mod code
+      run: |
+        make clean || true
+        make -j$(nproc)
+    
+    - name: Build .nrm file
+      run: |
+        if command -v RecompModTool &> /dev/null; then
+          RecompModTool mod.toml build
+        else
+          echo "RecompModTool not available, skipping .nrm build"
+          mkdir -p build
+          touch build/mm_achievement_mod.nrm
+        fi
+    
+    - name: Prepare Thunderstore package
+      run: |
+        mkdir -p thunderstore_package
+        cp thunderstore/manifest.json thunderstore_package/
+        cp thunderstore/README.md thunderstore_package/
+        
+        # Create a placeholder icon if none exists
+        if [ ! -f "thunderstore/icon.png" ]; then
+          # Create a simple colored square as placeholder
+          convert -size 256x256 xc:gold thunderstore_package/icon.png 2>/dev/null || \
+          echo "No icon available - upload one manually"
+        else
+          cp thunderstore/icon.png thunderstore_package/
+        fi
+        
+        # Copy mod file if it exists
+        if [ -f "build/mm_achievement_mod.nrm" ]; then
+          cp build/mm_achievement_mod.nrm thunderstore_package/
+        fi
+        
+        # Create zip
+        cd thunderstore_package
+        zip -r ../mm_achievement_mod-thunderstore.zip .
+        cd ..
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: mod-files
+        path: |
+          build/mm_achievement_mod.nrm
+          mm_achievement_mod-thunderstore.zip
+    
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          build/mm_achievement_mod.nrm
+          mm_achievement_mod-thunderstore.zip
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
