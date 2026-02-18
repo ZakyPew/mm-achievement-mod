@@ -1,96 +1,84 @@
-# Config file for an example Majora's Mask: Recompiled mod.
+# Config file for Majora's Mask Achievement Mod
 
-# Fields that end up in the mod's manifest.
 [manifest]
 
-# Unique ID of this mod. Pick something long enough that it'll never be the same as any other mod.
-# The name displayed in the mod management menu is separate from this so this doesn't need to be human readable.
-id = "mm_recomp_mod_template"
+# Unique mod ID
+id = "mm_achievement_mod"
 
-# Version of this mod.
+# Version
 version = "1.0.0"
 
-# The name that will show up for this mod in the mod menu. This should be human readable.
-display_name = "Always Spin Attack"
+# Display name in mod menu
+display_name = "MM Achievement System"
 
-# The description that will show up when this mod is displayed in the mod menu. This should be human readable.
-description =  """
-This is an example mod for Majora's Mask: Recompiled that can be used as a template for creating mods. \
-When this mod is enabled, you will always perform a quickspin when swinging your sword.
+# Description
+description = """
+Achievement system for Majora's Mask: Recompiled.
 
-For more details, see https://github.com/Zelda64Recomp/MMRecompModTemplate."""
+Track your progress with 40+ achievements across:
+- Transformation Masks (Deku, Goron, Zora, Fierce Deity)
+- Utility Masks (Keaton, Bunny Hood, Stone Mask, etc.)
+- Temple Bosses (Odolwa, Goht, Gyorg, Twinmold)
+- Collection (52 Heart Pieces, Stray Fairies)
+- Economy (Wallet upgrades, Bank rupees)
+- Skulltula Houses
 
-# A short description that will show up in this mod's entry in the mod list. This should be human readable and kept short
-# to prevent it from being cut off due to the limited space.
-short_description = "Always perform a quickspin when swinging your sword."
+Features rarity tiers, toast notifications, and an achievement menu.
+"""
 
-# Authors of this mod.
-authors = [ "Your name here" ]
+# Short description for mod list
+short_description = "Track achievements in Majora's Mask!"
 
-# ID of the target recomp game.
+# Authors
+authors = [ "Celest" ]
+
+# Target game
 game_id = "mm"
 
-# Minimum version of the target recomp (e.g. Zelda 64: Recompiled) that this mod can run on.
+# Minimum recomp version
 minimum_recomp_version = "1.2.2"
 
-# Dependency mods. Each entry is the mod's ID and then an optional minimum version of the dependency mod.
-dependencies = [
-# Example dependency:
-#    "modname:1.0.0"
-]
+# Dependencies
+dependencies = [ ]
 
-# Optional dependency mods. This has the same format as `dependencies`, but the game will still start if dependencies in this
-# list aren't present. You can query the presence of a given dependency by using `recomp_is_dependency_met` in recomputils.h.
-# Calling a function imported from an optional dependency that isn't present will trigger an error.
-optional_dependencies = [
+# Optional dependencies
+optional_dependencies = [ ]
 
-]
+# Native libraries
+native_libraries = [ ]
 
-# Native libraries (e.g. DLLs) and the functions they export.
-native_libraries = [
-# Example native library:
-#    { name = "my_native_library", funcs = ["my_native_library_function"] }
-]
+# Config options
+[[manifest.config_options]]
+id = "show_toast"
+name = "Show Toast Notifications"
+description = "Display popup when achievements unlock"
+type = "Bool"
+default = true
 
-# Inputs to the mod tool.
+[[manifest.config_options]]
+id = "toast_duration"
+name = "Toast Duration"
+description = "How long achievement toasts stay on screen (seconds)"
+type = "Number"
+min = 2.0
+max = 10.0
+step = 0.5
+precision = 1
+percent = false
+default = 5.0
+
+# Inputs
 [inputs]
 
-# Input elf file to generate a mod from.
+# Input elf file
 elf_path = "build/mod.elf"
 
-# Output mod filename.
-mod_filename = "mm_recomp_mod_template"
+# Output mod filename
+mod_filename = "mm_achievement_mod"
 
-# Reference symbol files.
+# Reference symbol files
 func_reference_syms_file = "Zelda64RecompSyms/mm.us.rev1.syms.toml"
 data_reference_syms_files = [ "Zelda64RecompSyms/mm.us.rev1.datasyms.toml", "Zelda64RecompSyms/mm.us.rev1.datasyms_static.toml" ]
 
-# Additional files to include in the mod.
+# Additional files
 additional_files = [ ]
-
-[[manifest.config_options]]
-id = "enum_option"
-name = "Enum Option"
-description = "Test enum config option"
-type = "Enum"
-options = [ "First", "Second" ]
-default = "First"
-
-[[manifest.config_options]]
-id = "number_option"
-name = "Number Option"
-description = "Test number config option."
-type = "Number"
-min = 0
-max = 10
-step = 0.1
-precision = 1
-percent = false
-default = 1
-
-[[manifest.config_options]]
-id = "string_option"
-name = "String Option"
-description = "Test string config option."
-type = "String"
-default = "Lorem Ipsum"
