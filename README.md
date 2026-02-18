@@ -88,3 +88,9 @@ In the mod menu:
 - Built with the [MMRecompModTemplate](https://github.com/Zelda64Recomp/MMRecompModTemplate)
 - For Majora's Mask: Recompiled
 - Made with love for Daddy 💕
+
+## Support
+
+If you enjoy this mod, consider supporting development:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/ZakyPew)
