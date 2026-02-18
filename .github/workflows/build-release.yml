@@ -19,45 +19,19 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang lld make zip
+        sudo apt-get install -y zip
     
-    - name: Initialize mm-decomp submodule
+    - name: Create source package
       run: |
-        git submodule update --init --recursive
-        ls -la mm-decomp/
+        # Create source zip excluding git and other unnecessary files
+        zip -r mm-achievement-mod-v1.0.0-source.zip . \
+          -x ".git/*" \
+          -x ".github/*" \
+          -x "*.zip" \
+          -x "*.yml" \
+          -x "*.txt" || true
     
-    - name: Try to build mod code
-      run: |
-        make clean 2>/dev/null || true
-        make -j$(nproc) 2>&1 || echo "Build may require additional setup"
-    
-    - name: Download RecompModTool
-      run: |
-        curl -L -o RecompModTool \
-          "https://github.com/N64Recomp/N64Recomp/releases/download/mod-tool-release/RecompModTool" || \
-          echo "Download failed, will try alternative"
-        
-        if [ -f RecompModTool ]; then
-          chmod +x RecompModTool
-          sudo mv RecompModTool /usr/local/bin/
-          echo "RecompModTool installed"
-        fi
-    
-    - name: Build .nrm file
-      run: |
-        if command -v RecompModTool &> /dev/null && [ -f "build/mod.elf" ]; then
-          RecompModTool mod.toml build
-        else
-          echo "Creating placeholder mod file"
-          mkdir -p build
-          echo "# Placeholder - Build locally with: make && RecompModTool mod.toml build" > build/mm_achievement_mod.nrm
-        fi
-    
-    - name: Create source zip
-      run: |
-        zip -r mm_achievement_mod-source.zip . -x ".git/*" "*.zip"
-    
-    - name: Prepare Thunderstore package
+    - name: Create Thunderstore package
       run: |
         mkdir -p thunderstore_package
         cp thunderstore/manifest.json thunderstore_package/
@@ -68,37 +42,34 @@ jobs:
           cp thunderstore/icon.png thunderstore_package/
         fi
         
-        # Copy mod file if it exists and has content
-        if [ -f "build/mm_achievement_mod.nrm" ] && [ -s "build/mm_achievement_mod.nrm" ]; then
-          cp build/mm_achievement_mod.nrm thunderstore_package/
-        else
-          echo "# Build locally - see README.md" > thunderstore_package/PLACEHOLDER.txt
-        fi
+        # Copy source code for users to build
+        cp -r src thunderstore_package/
+        cp -r include thunderstore_package/
+        cp mod.toml thunderstore_package/
+        cp Makefile thunderstore_package/
+        cp README.md thunderstore_package/BUILD_README.md
         
         # Create zip
         cd thunderstore_package
-        zip -r ../mm_achievement_mod-thunderstore.zip .
+        zip -r ../mm-achievement-mod-v1.0.0-thunderstore.zip .
         cd ..
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: mod-files
+        name: mod-packages
         path: |
-          build/mm_achievement_mod.nrm
-          mm_achievement_mod-thunderstore.zip
-          mm_achievement_mod-source.zip
+          *.zip
     
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          build/mm_achievement_mod.nrm
-          mm_achievement_mod-thunderstore.zip
-          mm_achievement_mod-source.zip
+          mm-achievement-mod-v1.0.0-source.zip
+          mm-achievement-mod-v1.0.0-thunderstore.zip
         draft: false
-        prerelease: true
+        prerelease: false
         generate_release_notes: true
       env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
