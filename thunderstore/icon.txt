@@ -1,0 +1,8 @@
+# Icon Placeholder
+
+Please replace this file with a 256x256 PNG icon for the mod.
+
+Suggested icon: A gold trophy or achievement badge
+Background: Gold/Yellow (#FFD700)
+Size: 256x256 pixels
+Format: PNG

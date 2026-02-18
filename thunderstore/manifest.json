@@ -1,0 +1,14 @@
+{
+    "name": "Achievement_System",
+    "version_number": "1.0.0",
+    "website_url": "https://github.com/ZakyPew/mm-achievement-mod",
+    "description": "Achievement system for Majora's Mask: Recompiled! Track 40+ achievements with rarity tiers, toast notifications, and in-game menu.",
+    "dependencies": [
+        "Zelda64Recomp-Zelda64Recompiled-1.2.2"
+    ],
+    "author": "ZakyPew",
+    "categories": [
+        "gameplay"
+    ],
+    "icon": "icon.png"
+}
